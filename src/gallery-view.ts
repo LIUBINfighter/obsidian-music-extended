@@ -4,10 +4,13 @@ import React from 'react';
 import GalleryViewComponent, { setupGalleryIcons } from './Components/GalleryView';
 
 export const GALLERY_VIEW_TYPE = 'music-gallery-view';
+export type ViewTab = 'gallery' | 'musictable';
 
 export class GalleryView extends ItemView {
     private reactRoot: ReturnType<typeof createRoot> | null = null;
-    private viewState: any = {};
+    private viewState: any = {
+        activeTab: 'gallery' as ViewTab
+    };
     
     constructor(leaf: WorkspaceLeaf) {
         super(leaf);
@@ -37,6 +40,11 @@ export class GalleryView extends ItemView {
         this.renderReactComponent();
     }
     
+    // 切换选项卡
+    switchTab(tab: ViewTab) {
+        this.setState({ activeTab: tab });
+    }
+    
     // 渲染React组件
     private renderReactComponent() {
         if (!this.reactRoot) return;
@@ -46,6 +54,8 @@ export class GalleryView extends ItemView {
             React.createElement(GalleryViewComponent, {
                 app: this.app,
                 plugin: this.plugin,
+                activeTab: this.viewState.activeTab,
+                onSwitchTab: (tab: ViewTab) => this.switchTab(tab),
                 onFileOpen: async (file: TFile) => {
                     await this.app.workspace.getLeaf().openFile(file);
                 }

@@ -730,3 +730,182 @@
     padding: 20px;
     color: var(--text-muted);
 }
+
+/* ...existing styles... */
+
+/* 选项卡样式 */
+.music-view-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--background-modifier-border);
+    margin-bottom: 10px;
+}
+
+.music-view-tab {
+    padding: 8px 16px;
+    cursor: pointer;
+    border-radius: 4px 4px 0 0;
+    margin-right: 4px;
+    user-select: none;
+}
+
+.music-view-tab:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.music-view-tab.active {
+    border: 1px solid var(--background-modifier-border);
+    border-bottom: none;
+    background-color: var(--background-primary);
+    font-weight: bold;
+}
+
+.music-view-content {
+    padding-top: 10px;
+}
+
+/* 音频控制面板内部元素样式 */
+.audio-control-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.audio-controls-panel .audio-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.audio-controls-panel .audio-btn:hover {
+    background: var(--interactive-hover);
+    transform: translateY(-1px);
+}
+
+.audio-controls-panel .audio-play-btn {
+    width: 42px;
+    height: 42px;
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.audio-controls-panel .audio-play-btn:hover {
+    background: var(--interactive-accent-hover);
+}
+
+.audio-controls-panel .audio-volume-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 120px;
+}
+
+.audio-controls-panel .audio-volume-slider {
+    width: 80px;
+    height: 4px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--background-modifier-border);
+    border-radius: 2px;
+    outline: none;
+}
+
+.audio-controls-panel .audio-volume-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--interactive-accent);
+    cursor: pointer;
+}
+
+.audio-controls-panel .audio-progress-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 200px;
+}
+
+.audio-controls-panel .audio-time {
+    font-size: 0.8em;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.audio-controls-panel .audio-progress-bar {
+    flex: 1;
+    height: 4px;
+    background: var(--background-modifier-border);
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.audio-controls-panel .audio-progress-fill {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: var(--interactive-accent);
+    border-radius: 2px;
+}
+
+.audio-controls-panel .audio-progress-handle {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--interactive-accent);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    pointer-events: none;
+}
+
+.audio-controls-panel .audio-options-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+}
+
+.audio-controls-panel .audio-btn-small {
+    width: 28px;
+    height: 28px;
+    border-radius: 4px;
+    background: var(--background-secondary);
+}
+
+.audio-controls-panel .audio-btn-active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+/* 自适应布局调整 */
+@media (max-width: 600px) {
+    .audio-controls-panel {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .audio-controls-panel .audio-progress-container {
+        width: 100%;
+        order: -1;
+        margin-bottom: 8px;
+    }
+    
+    .audio-controls-panel .audio-options-group {
+        margin-left: 0;
+        margin-top: 8px;
+    }
+}

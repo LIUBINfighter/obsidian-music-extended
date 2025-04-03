@@ -3,14 +3,17 @@ import { TFile, setIcon } from 'obsidian';
 import { MusicMetadata } from '../metadata-utils';
 import { formatDuration, getFileTypeIcon } from '../metadata-utils';
 import { findMusicFiles, getFilenameWithoutExtension } from '../utils';
+import MusicTableComponent from './MusicTable';
 
 interface GalleryViewProps {
     app: any;
     plugin: any;
+    activeTab: ViewTab;
+    onSwitchTab: (tab: ViewTab) => void;
     onFileOpen: (file: TFile) => Promise<void>;
 }
 
-const GalleryView: React.FC<GalleryViewProps> = ({ app, plugin, onFileOpen }) => {
+const GalleryViewComponent: React.FC<GalleryViewProps> = ({ app, plugin, activeTab, onSwitchTab, onFileOpen }) => {
     const [musicFiles, setMusicFiles] = useState<TFile[]>([]);
     const [musicMetadata, setMusicMetadata] = useState<MusicMetadata[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
@@ -87,105 +90,134 @@ const GalleryView: React.FC<GalleryViewProps> = ({ app, plugin, onFileOpen }) =>
     };
 
     return (
-        <div className="music-gallery-container">
-            <div className="music-gallery-header">
-                <h2>音乐库</h2>
-            </div>
-            
-            <div className="music-gallery-toolbar">
-                <div className="music-gallery-search">
-                    <input
-                        type="text"
-                        className="music-search-input"
-                        placeholder="搜索音乐文件..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+        <div className="music-gallery-view">
+            <div className="music-view-tabs">
+                <div 
+                    className={`music-view-tab ${activeTab === 'gallery' ? 'active' : ''}`}
+                    onClick={() => onSwitchTab('gallery')}
+                >
+                    图库视图
+                </div>
+                <div 
+                    className={`music-view-tab ${activeTab === 'musictable' ? 'active' : ''}`}
+                    onClick={() => onSwitchTab('musictable')}
+                >
+                    表格视图
                 </div>
             </div>
             
-            <div className="music-gallery-list">
-                {loading && (
-                    <div className="music-gallery-loading">正在加载音乐文件...</div>
-                )}
-                
-                {error && (
-                    <div className="music-error-message">{error}</div>
-                )}
-                
-                {!loading && !error && filteredMetadata.length === 0 && (
-                    <div className="music-empty-message">
-                        {musicMetadata.length === 0 
-                            ? '未找到音乐文件' 
-                            : '没有匹配的音乐文件'}
-                    </div>
-                )}
-                
-                {!loading && !error && filteredMetadata.length > 0 && (
-                    <div className="music-grid">
-                        {filteredMetadata.map((metadata, index) => {
-                            const file = musicFiles.find(f => f.path === metadata.filePath);
-                            if (!file) return null;
+            <div className="music-view-content">
+                {activeTab === 'gallery' ? (
+                    <div className="gallery-container">
+                        <div className="music-gallery-header">
+                            <h2>音乐库</h2>
+                        </div>
+                        
+                        <div className="music-gallery-toolbar">
+                            <div className="music-gallery-search">
+                                <input
+                                    type="text"
+                                    className="music-search-input"
+                                    placeholder="搜索音乐文件..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        
+                        <div className="music-gallery-list">
+                            {loading && (
+                                <div className="music-gallery-loading">正在加载音乐文件...</div>
+                            )}
                             
-                            return (
-                                <div 
-                                    key={file.path} 
-                                    className="music-card"
-                                    onClick={() => handleCardClick(file)}
-                                >
-                                    <div className="music-card-cover">
-                                        {metadata.coverData ? (
-                                            <img 
-                                                className="music-cover-image" 
-                                                src={metadata.coverData}
-                                                onError={() => renderDefaultCover(file)} 
-                                            />
-                                        ) : metadata.coverUrl ? (
-                                            <img 
-                                                className="music-cover-image" 
-                                                src={metadata.coverUrl}
-                                                onError={() => renderDefaultCover(file)} 
-                                            />
-                                        ) : (
-                                            renderDefaultCover(file)
-                                        )}
-                                    </div>
-                                    
-                                    <div className="music-card-info">
-                                        <div className="music-card-title">
-                                            {metadata.title || getFilenameWithoutExtension(file)}
-                                        </div>
-                                        
-                                        {metadata.artist && (
-                                            <div className="music-card-artist">{metadata.artist}</div>
-                                        )}
-                                        
-                                        {metadata.album && (
-                                            <div className="music-card-album">{metadata.album}</div>
-                                        )}
-                                        
-                                        <div className="music-card-meta">
-                                            <div>
-                                                <span className="music-duration-icon"></span>
-                                                {formatDuration(metadata.duration)}
-                                            </div>
-                                            
-                                            {metadata.fileSize && (
-                                                <div>{metadata.fileSize} MB</div>
-                                            )}
-                                        </div>
-                                    </div>
+                            {error && (
+                                <div className="music-error-message">{error}</div>
+                            )}
+                            
+                            {!loading && !error && filteredMetadata.length === 0 && (
+                                <div className="music-empty-message">
+                                    {musicMetadata.length === 0 
+                                        ? '未找到音乐文件' 
+                                        : '没有匹配的音乐文件'}
                                 </div>
-                            );
-                        })}
+                            )}
+                            
+                            {!loading && !error && filteredMetadata.length > 0 && (
+                                <div className="music-grid">
+                                    {filteredMetadata.map((metadata, index) => {
+                                        const file = musicFiles.find(f => f.path === metadata.filePath);
+                                        if (!file) return null;
+                                        
+                                        return (
+                                            <div 
+                                                key={file.path} 
+                                                className="music-card"
+                                                onClick={() => handleCardClick(file)}
+                                            >
+                                                <div className="music-card-cover">
+                                                    {metadata.coverData ? (
+                                                        <img 
+                                                            className="music-cover-image" 
+                                                            src={metadata.coverData}
+                                                            onError={() => renderDefaultCover(file)} 
+                                                        />
+                                                    ) : metadata.coverUrl ? (
+                                                        <img 
+                                                            className="music-cover-image" 
+                                                            src={metadata.coverUrl}
+                                                            onError={() => renderDefaultCover(file)} 
+                                                        />
+                                                    ) : (
+                                                        renderDefaultCover(file)
+                                                    )}
+                                                </div>
+                                                
+                                                <div className="music-card-info">
+                                                    <div className="music-card-title">
+                                                        {metadata.title || getFilenameWithoutExtension(file)}
+                                                    </div>
+                                                    
+                                                    {metadata.artist && (
+                                                        <div className="music-card-artist">{metadata.artist}</div>
+                                                    )}
+                                                    
+                                                    {metadata.album && (
+                                                        <div className="music-card-album">{metadata.album}</div>
+                                                    )}
+                                                    
+                                                    <div className="music-card-meta">
+                                                        <div>
+                                                            <span className="music-duration-icon"></span>
+                                                            {formatDuration(metadata.duration)}
+                                                        </div>
+                                                        
+                                                        {metadata.fileSize && (
+                                                            <div>{metadata.fileSize} MB</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </div>
                     </div>
+                ) : (
+                    <MusicTableComponent 
+                        app={app}
+                        plugin={plugin}
+                        onFileOpen={onFileOpen}
+                    />
                 )}
             </div>
         </div>
     );
 };
 
-export default GalleryView;
+export default GalleryViewComponent;
 
-// 不再需要处理收藏图标的逻辑
-export const setupGalleryIcons = (container: HTMLElement) => {};
+// 保留原有的 setupGalleryIcons 函数
+export function setupGalleryIcons(containerEl: HTMLElement) {
+    // 原有的图标设置逻辑
+}
