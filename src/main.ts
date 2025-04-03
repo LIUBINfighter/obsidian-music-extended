@@ -2,6 +2,7 @@ import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, TFile } from 'ob
 import { GALLERY_VIEW_TYPE, GalleryView } from './gallery-view';
 import { enhanceAudioView } from './audio-enhancer';
 import { parseMusicMetadata } from './metadata-utils';
+import { TABLE_VIEW_TYPE, TableView } from './table-view';
 
 interface MusicExtendedSettings {
 	mySetting: string;
@@ -25,6 +26,17 @@ export default class MusicExtendedPlugin extends Plugin {
 			GALLERY_VIEW_TYPE,
 			(leaf: WorkspaceLeaf) => {
 				const view = new GalleryView(leaf);
+				// 为视图设置plugin引用
+				view.plugin = this;
+				return view;
+			}
+		);
+		
+		// 注册表格视图
+		this.registerView(
+			TABLE_VIEW_TYPE,
+			(leaf: WorkspaceLeaf) => {
+				const view = new TableView(leaf);
 				// 为视图设置plugin引用
 				view.plugin = this;
 				return view;
@@ -78,6 +90,23 @@ export default class MusicExtendedPlugin extends Plugin {
 				this.activateView('workspace');
 			},
 		});
+		
+		// 添加表格视图命令
+		this.addCommand({
+			id: 'open-music-table-new-tab',
+			name: '在新标签页打开音乐表格',
+			callback: () => {
+				this.activateTableView('tab');
+			},
+		});
+		
+		this.addCommand({
+			id: 'open-music-table-workspace',
+			name: '在工作区打开音乐表格',
+			callback: () => {
+				this.activateTableView('workspace');
+			},
+		});
 
 		// 添加文件菜单选项，增强音频播放
 		this.registerEvent(
@@ -112,6 +141,7 @@ export default class MusicExtendedPlugin extends Plugin {
 	onunload() {
 		// 插件卸载时的清理工作
 		this.app.workspace.detachLeavesOfType(GALLERY_VIEW_TYPE);
+		this.app.workspace.detachLeavesOfType(TABLE_VIEW_TYPE);
 		
 		// 移除所有增强的音频视图元素
 		document.querySelectorAll('.music-extended-audio-enhancer').forEach(el => el.remove());
@@ -159,6 +189,47 @@ export default class MusicExtendedPlugin extends Plugin {
 				const leaf = workspace.getLeaf('tab');
 				await leaf.setViewState({
 					type: GALLERY_VIEW_TYPE,
+					active: true,
+				});
+				workspace.revealLeaf(leaf);
+			}
+		}
+	}
+
+	/**
+	 * 激活音乐表格视图
+	 * @param mode - 激活模式: 'tab'表示新建标签页, 'workspace'表示在工作区打开
+	 */
+	async activateTableView(mode: 'tab' | 'workspace' = 'tab') {
+		const { workspace } = this.app;
+		
+		if (mode === 'workspace') {
+			// 方式1: 在工作区中查找已有视图或创建
+			let leaf = workspace.getLeavesOfType(TABLE_VIEW_TYPE)[0];
+			
+			if (!leaf) {
+				// 使用已存在的视图位置
+				leaf = workspace.getLeaf();
+				await leaf.setViewState({
+					type: TABLE_VIEW_TYPE,
+					active: true,
+				});
+			}
+			
+			workspace.revealLeaf(leaf);
+		} else {
+			// 方式2: 创建新标签页(不覆盖当前视图)
+			// 首先查看是否已经有此类型的视图
+			const existingLeaf = workspace.getLeavesOfType(TABLE_VIEW_TYPE)[0];
+			
+			if (existingLeaf) {
+				// 如果存在则激活已有视图
+				workspace.revealLeaf(existingLeaf);
+			} else {
+				// 创建新标签页
+				const leaf = workspace.getLeaf('tab');
+				await leaf.setViewState({
+					type: TABLE_VIEW_TYPE,
 					active: true,
 				});
 				workspace.revealLeaf(leaf);
