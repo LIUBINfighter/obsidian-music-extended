@@ -1,4 +1,4 @@
-import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, TFile, ViewStateResult } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, TFile } from 'obsidian';
 import { GALLERY_VIEW_TYPE, GalleryView } from './gallery-view';
 import { enhanceAudioView } from './audio-enhancer';
 import { parseMusicMetadata } from './metadata-utils';
@@ -23,12 +23,15 @@ export default class MusicExtendedPlugin extends Plugin {
 		// 注册视图
 		this.registerView(
 			GALLERY_VIEW_TYPE,
-			(leaf: WorkspaceLeaf) => new GalleryView(leaf)
+			(leaf: WorkspaceLeaf) => {
+				const view = new GalleryView(leaf);
+				// 为视图设置plugin引用
+				view.plugin = this;
+				return view;
+			}
 		);
 		
-		// 不再注册自定义音频视图，而是增强原生音频视图
-		
-		// 监听工作区布局变更，以增强新打开的音频视图
+			// 监听工作区布局变更，以增强新打开的音频视图
 		this.registerEvent(
 			this.app.workspace.on('layout-change', () => {
 				this.enhanceExistingAudioViews();
@@ -193,35 +196,13 @@ export default class MusicExtendedPlugin extends Plugin {
 					// 获取音频元数据
 					const metadata = await parseMusicMetadata(file);
 					
-					// 对原生音频视图进行增强
-					enhanceAudioView(audioViewContainer, file, metadata, this.app);
+					// 对原生音频视图进行增强，传入插件实例
+					enhanceAudioView(audioViewContainer, file, metadata, this.app, this);
 				} catch (error) {
 					console.error('增强音频视图失败:', error);
 				}
 			}
 		});
-	}
-
-	/**
-	 * 打开音频播放视图
-	 */
-	async openAudioView(file: TFile): Promise<void> {
-		const { workspace } = this.app;
-		
-		// 创建新标签页
-		const leaf = workspace.getLeaf('tab');
-		await leaf.setViewState({
-			type: AUDIO_VIEW_TYPE,
-			active: true,
-		});
-		
-		// 获取视图实例并设置文件
-		if (leaf.view instanceof CustomAudioView) {
-			await leaf.view.setFile(file);
-		}
-		
-		// 聚焦到视图
-		workspace.revealLeaf(leaf);
 	}
 
 	/**

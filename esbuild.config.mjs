@@ -39,7 +39,8 @@ const context = await esbuild.context({
 	treeShaking: true,
 	outfile: "main.js",
 	minify: prod,
-	platform: 'node', // 告诉 Esbuild 目标平台是浏览器
+	platform: 'browser', // 修改为browser以支持React
+	jsx: 'automatic',    // 添加自动JSX转换
 });
 
 if (prod) {

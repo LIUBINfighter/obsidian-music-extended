@@ -497,3 +497,65 @@
 .audio-lyrics-line {
     margin-bottom: 5px;
 }
+
+/* 移除收藏相关样式 */
+.music-gallery-toolbar {
+    display: flex;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--background-modifier-border);
+}
+
+/* 音频视图增强器的样式调整 */
+.audio-playback-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.audio-control-button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-s, 4px);
+    background: var(--interactive-normal);
+    color: var(--text-normal);
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.audio-control-button:hover {
+    background: var(--interactive-hover);
+    transform: translateY(-1px);
+}
+
+.audio-control-button svg {
+    width: 18px;
+    height: 18px;
+    color: currentColor;
+}
+
+.audio-play-pause {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+.audio-play-pause:hover {
+    background: var(--interactive-accent-hover);
+}
+
+/* 显示/隐藏原生控件按钮样式 */
+.toggle-native {
+    background: var(--background-modifier-border);
+    color: var(--text-muted);
+    margin-left: auto;
+}
+
+.toggle-native:hover {
+    background: var(--interactive-hover);
+    color: var(--text-normal);
+}
