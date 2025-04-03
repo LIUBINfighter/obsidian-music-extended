@@ -1,11 +1,11 @@
 {
-	"id": "sample-plugin",
-	"name": "Sample Plugin",
+	"id": "obsidian-music-extended",
+	"name": "Music Extended",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "Demonstrates some of the capabilities of the Obsidian API.",
-	"author": "Obsidian",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"description": "音乐扩展相关功能的Obsidian插件。",
+	"author": "Jay Bridge",
+	"authorUrl": "",
+	"fundingUrl": "",
 	"isDesktopOnly": false
 }
