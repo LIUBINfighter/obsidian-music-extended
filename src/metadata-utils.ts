@@ -1,4 +1,6 @@
-import { TFile, requestUrl } from 'obsidian';
+import { TFile } from 'obsidian';
+import * as mm from 'music-metadata';
+import { selectCover, ratingToStars } from 'music-metadata';
 
 // 音乐文件元数据接口
 export interface MusicMetadata {
@@ -6,11 +8,19 @@ export interface MusicMetadata {
     artist?: string;
     album?: string;
     year?: string;
-    genre?: string;
+    genre?: string[];
     duration?: number;
-    coverUrl?: string;
+    coverData?: string; // base64编码的封面数据
     filePath: string;
     fileSize?: number;
+    bitrate?: number;
+    sampleRate?: number;
+    lossless?: boolean;
+    rating?: number; // 0-5星级评分
+    trackNumber?: number;
+    totalTracks?: number;
+    discNumber?: number;
+    totalDiscs?: number;
 }
 
 /**
@@ -30,55 +40,90 @@ export function extractInfoFromFilename(filename: string): { artist?: string; ti
 
 /**
  * 解析音乐文件元数据
- * 
- * 注意：这是一个简化版本，实际生产环境中应使用更完善的音乐元数据解析库
- * 如 music-metadata 或其他适用于浏览器环境的库
+ * 使用music-metadata库提取详细的音乐元数据
  */
 export async function parseMusicMetadata(file: TFile): Promise<MusicMetadata> {
-    const { basename, extension, path, stat } = file;
-    
-    // 从文件名提取基本信息
-    const { artist, title } = extractInfoFromFilename(basename);
+    const { basename, path, stat } = file;
     
     // 计算文件大小（单位：MB）
     const fileSize = stat?.size ? Math.round((stat.size / (1024 * 1024)) * 100) / 100 : undefined;
     
-    // 创建基本元数据对象
+    // 创建基本元数据对象（默认为空）
     const metadata: MusicMetadata = {
-        title: title || basename,
-        artist,
+        title: basename,
         filePath: path,
         fileSize
     };
     
     try {
-        // 尝试读取文件的前几KB内容以提取更多元数据
-        // 注意：这只是一个简化示例，实际上需要更复杂的解析逻辑
+        // 读取文件二进制数据
         const fileContent = await file.vault.readBinary(file);
         const buffer = new Uint8Array(fileContent);
         
-        // 尝试从文件内容中提取元数据（简化示例）
-        // 这里只是模拟一些可能的元数据
-        if (extension === 'mp3') {
-            // 假设我们能识别一些专辑信息
-            if (path.toLowerCase().includes('album')) {
-                metadata.album = path.split('/').slice(-2, -1)[0];
-            }
-            
-            // 假设从文件目录结构提取年份
-            const yearMatch = path.match(/\b(19|20)\d{2}\b/);
-            if (yearMatch) {
-                metadata.year = yearMatch[0];
-            }
-            
-            // 模拟一个音乐时长 (2-7分钟)
-            metadata.duration = Math.floor(120 + Math.random() * 300);
+        // 使用music-metadata解析音乐元数据
+        const parsedMetadata = await mm.parseBuffer(buffer, {
+            mimeType: getMimeTypeByExtension(file.extension),
+            size: buffer.length
+        });
+        
+        // 提取常见标签
+        const { common, format } = parsedMetadata;
+        
+        // 更新元数据
+        metadata.title = common.title || basename;
+        metadata.artist = common.artist;
+        metadata.album = common.album;
+        metadata.year = common.year?.toString();
+        metadata.genre = common.genre;
+        metadata.duration = format.duration;
+        metadata.bitrate = format.bitrate;
+        metadata.sampleRate = format.sampleRate;
+        metadata.lossless = format.lossless;
+        metadata.rating = common.rating ? ratingToStars(common.rating) : undefined;
+        metadata.trackNumber = common.track.no;
+        metadata.totalTracks = common.track.of;
+        metadata.discNumber = common.disk.no;
+        metadata.totalDiscs = common.disk.of;
+        
+        // 提取封面
+        const cover = selectCover(common.picture);
+        if (cover) {
+            metadata.coverData = `data:${cover.format};base64,${uint8ArrayToBase64(cover.data)}`;
         }
+        
     } catch (error) {
         console.error('提取音乐元数据时出错:', error);
     }
     
     return metadata;
+}
+
+/**
+ * 根据文件扩展名获取MIME类型
+ */
+function getMimeTypeByExtension(extension: string): string {
+    const mimeTypes: Record<string, string> = {
+        'mp3': 'audio/mpeg',
+        'wav': 'audio/wav',
+        'ogg': 'audio/ogg',
+        'flac': 'audio/flac',
+        'm4a': 'audio/mp4',
+        'aac': 'audio/aac'
+    };
+    
+    return mimeTypes[extension.toLowerCase()] || 'audio/mpeg';
+}
+
+/**
+ * 将Uint8Array转换为base64编码
+ */
+function uint8ArrayToBase64(buffer: Uint8Array): string {
+    let binary = '';
+    const len = buffer.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(buffer[i]);
+    }
+    return btoa(binary);
 }
 
 /**
@@ -110,4 +155,17 @@ export function getFileTypeIcon(extension: string): string {
         default:
             return 'file-music';
     }
+}
+
+/**
+ * 格式化比特率显示
+ */
+export function formatBitrate(bitrate?: number): string {
+    if (!bitrate) return '';
+    
+    if (bitrate >= 1000) {
+        return `${(bitrate / 1000).toFixed(1)} kbps`;
+    }
+    
+    return `${Math.round(bitrate)} bps`;
 }

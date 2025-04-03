@@ -161,9 +161,36 @@ export class GalleryView extends ItemView {
             
             const cardEl = gridEl.createDiv({ cls: 'music-card' });
             
-            // 添加图标
-            const iconEl = cardEl.createDiv({ cls: 'music-card-icon' });
-            iconEl.innerHTML = `<span class="${getFileTypeIcon(file.extension)}"></span>`;
+            // 添加封面区域
+            const coverEl = cardEl.createDiv({ cls: 'music-card-cover' });
+            
+            // 根据是否有封面数据或URL来显示图片
+            if (metadata.coverData) {
+                // 使用从文件中提取的封面数据
+                const imgEl = coverEl.createEl('img', {
+                    cls: 'music-cover-image',
+                    attr: { src: metadata.coverData }
+                });
+                
+                // 添加加载错误处理
+                imgEl.onerror = () => {
+                    this.setDefaultCoverIcon(coverEl, file.extension);
+                };
+            } else if (metadata.coverUrl) {
+                // 使用远程封面URL
+                const imgEl = coverEl.createEl('img', {
+                    cls: 'music-cover-image',
+                    attr: { src: metadata.coverUrl }
+                });
+                
+                // 添加加载错误处理
+                imgEl.onerror = () => {
+                    this.setDefaultCoverIcon(coverEl, file.extension);
+                };
+            } else {
+                // 没有封面时使用默认图标
+                this.setDefaultCoverIcon(coverEl, file.extension);
+            }
             
             // 添加信息区
             const infoEl = cardEl.createDiv({ cls: 'music-card-info' });
@@ -182,12 +209,20 @@ export class GalleryView extends ItemView {
                 });
             }
             
+            // 如果有专辑信息则添加
+            if (metadata.album) {
+                infoEl.createDiv({
+                    cls: 'music-card-album',
+                    text: metadata.album
+                });
+            }
+            
             // 添加元数据信息
             const metaEl = infoEl.createDiv({ cls: 'music-card-meta' });
             
             // 添加时长信息
             const durationEl = metaEl.createDiv();
-            durationEl.innerHTML = `<span class="music-duration-icon clock"></span>${formatDuration(metadata.duration)}`;
+            durationEl.innerHTML = `<span class="music-duration-icon"></span>${formatDuration(metadata.duration)}`;
             
             // 添加文件大小
             if (metadata.fileSize) {
@@ -202,6 +237,19 @@ export class GalleryView extends ItemView {
                 this.openFile(file);
             });
         });
+    }
+    
+    /**
+     * 为封面区域设置默认的图标
+     */
+    private setDefaultCoverIcon(coverEl: HTMLElement, extension: string): void {
+        // 清空原有内容
+        coverEl.empty();
+        
+        // 添加默认图标
+        const iconClass = getFileTypeIcon(extension);
+        coverEl.addClass('music-card-cover-icon');
+        coverEl.innerHTML = `<span class="music-cover-icon ${iconClass}"></span>`;
     }
     
     async openFile(file: TFile): Promise<void> {
