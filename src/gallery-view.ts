@@ -1,4 +1,4 @@
-import { ItemView, TFile, WorkspaceLeaf } from 'obsidian';
+import { getIcon, ItemView, TFile, WorkspaceLeaf } from 'obsidian';
 import { createRoot } from 'react-dom/client';
 import React from 'react';
 import GalleryViewComponent, { setupGalleryIcons } from './Components/GalleryView';
@@ -20,6 +20,10 @@ export class GalleryView extends ItemView {
         return GALLERY_VIEW_TYPE;
     }
     
+	getIcon(): string {
+		return 'file-music';
+	}
+
     getDisplayText(): string {
         return '音乐库';
     }

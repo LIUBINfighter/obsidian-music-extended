@@ -189,22 +189,34 @@
 }
 
 .audio-cover-container {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
     flex-shrink: 0;
     margin-right: 20px;
     overflow: hidden;
-    border-radius: 8px;
+    border-radius: 6px;
     background: var(--background-primary);
     display: flex;
     align-items: center;
     justify-content: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: box-shadow 0.2s;
+}
+
+.audio-cover-container:hover {
+    transform: none;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .audio-cover-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.2s ease;
+}
+
+.audio-cover-container:hover .audio-cover-image {
+    transform: scale(1.02);
 }
 
 .audio-cover-placeholder {
@@ -444,7 +456,7 @@
 
 .audio-tech-item {
     font-size: 0.85em;
-    color: var(--text-faint);
+    color: var (--text-faint);
     background: var(--background-primary);
     padding: 3px 8px;
     border-radius: 4px;
@@ -475,11 +487,16 @@
 }
 
 .audio-lyrics-panel {
-    padding: 16px;
+    padding: 12px;
     border-top: 1px solid var(--background-modifier-border);
     background: var(--background-secondary-alt);
-    max-height: 200px;
+    max-height: 180px;
     overflow-y: auto;
+    transition: max-height 0.2s ease;
+}
+
+.audio-lyrics-panel:hover {
+    max-height: 250px;
 }
 
 .audio-lyrics-title {
@@ -489,13 +506,22 @@
 }
 
 .audio-lyrics-content {
-    font-size: 0.9em;
-    color: var (--text-muted);
-    line-height: 1.6;
+    font-size: 0.95em;
+    color: var(--text-normal);
+    line-height: 1.8;
 }
 
 .audio-lyrics-line {
-    margin-bottom: 5px;
+    margin-bottom: 6px;
+    padding: 2px 0;
+    transition: color 0.1s;
+}
+
+.audio-lyrics-line.active {
+    background: var(--background-modifier-hover);
+    color: var(--text-accent);
+    border-radius: 3px;
+    padding: 2px 6px;
 }
 
 /* 移除收藏相关样式 */
@@ -521,11 +547,39 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-s, 4px);
+    border-radius: 4px;
     background: var(--interactive-normal);
     color: var(--text-normal);
     cursor: pointer;
-    transition: all 0.15s ease;
+    transition: background-color 0.1s ease;
+}
+
+.audio-control-button:hover {
+    background: var(--interactive-hover);
+}
+
+.audio-control-button:active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
+}
+
+/* 移除波纹效果，使用更简单的交互 */
+.audio-control-button::after {
+    display: none;
+}
+
+.audio-control-button.audio-loop,
+.audio-control-button.audio-shuffle {
+    background: var(--interactive-normal);
+    color: var(--text-muted);
+    width: 32px;
+    height: 32px;
+}
+
+.audio-control-button.audio-loop.active,
+.audio-control-button.audio-shuffle.active {
+    background: var(--interactive-accent);
+    color: var(--text-on-accent);
 }
 
 .audio-control-button:hover {
@@ -731,8 +785,6 @@
     color: var(--text-muted);
 }
 
-/* ...existing styles... */
-
 /* 选项卡样式 */
 .music-view-tabs {
     display: flex;
@@ -741,22 +793,27 @@
 }
 
 .music-view-tab {
-    padding: 8px 16px;
+    padding: 6px 12px;
     cursor: pointer;
     border-radius: 4px 4px 0 0;
     margin-right: 4px;
     user-select: none;
+    transition: background-color 0.1s ease;
+    border: 1px solid transparent;
+    color: var(--text-muted);
 }
 
 .music-view-tab:hover {
     background-color: var(--background-modifier-hover);
+    color: var(--text-normal);
 }
 
 .music-view-tab.active {
     border: 1px solid var(--background-modifier-border);
-    border-bottom: none;
+    border-bottom: 1px solid var(--background-primary);
     background-color: var(--background-primary);
-    font-weight: bold;
+    color: var(--text-normal);
+    font-weight: 500;
 }
 
 .music-view-content {
@@ -774,24 +831,21 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    border-radius: 4px;
     background: var(--interactive-normal);
     color: var(--text-normal);
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: background-color 0.1s ease;
 }
 
 .audio-controls-panel .audio-btn:hover {
     background: var(--interactive-hover);
-    transform: translateY(-1px);
 }
 
 .audio-controls-panel .audio-play-btn {
-    width: 42px;
-    height: 42px;
     background: var(--interactive-accent);
     color: var(--text-on-accent);
 }
@@ -808,20 +862,25 @@
 }
 
 .audio-controls-panel .audio-volume-slider {
-    width: 80px;
-    height: 4px;
     -webkit-appearance: none;
     appearance: none;
+    width: 80px;
+    height: 4px;
     background: var(--background-modifier-border);
     border-radius: 2px;
     outline: none;
+    transition: height 0.2s;
+}
+
+.audio-controls-panel .audio-volume-slider:hover {
+    height: 6px;
 }
 
 .audio-controls-panel .audio-volume-slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: var(--interactive-accent);
     cursor: pointer;
@@ -849,6 +908,11 @@
     position: relative;
     cursor: pointer;
     overflow: hidden;
+    transition: height 0.1s ease;
+}
+
+.audio-controls-panel .audio-progress-bar:hover {
+    height: 6px;
 }
 
 .audio-controls-panel .audio-progress-fill {
@@ -864,12 +928,18 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border-radius: 50%;
     background: var(--interactive-accent);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.1s;
+}
+
+.audio-controls-panel .audio-progress-bar:hover .audio-progress-handle {
+    opacity: 1;
 }
 
 .audio-controls-panel .audio-options-group {
@@ -908,4 +978,67 @@
         margin-left: 0;
         margin-top: 8px;
     }
+}
+
+/* TextForCopy组件样式 */
+.text-for-copy {
+    display: inline-block;
+    cursor: pointer;
+    position: relative;
+    border-radius: 3px;
+    padding: 0 2px;
+    transition: background-color 0.1s ease;
+}
+
+.text-for-copy:hover {
+    background-color: var(--background-modifier-hover);
+}
+
+.text-for-copy.copied {
+    background-color: var(--background-modifier-success);
+    color: var(--text-normal);
+}
+
+.text-for-copy .copy-indicator {
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--background-modifier-success);
+    color: var(--text-on-accent);
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.8em;
+    animation: fadeIn 0.2s, fadeOut 0.2s 1s; /* 从1.8s减少到1s */
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+/* 在音频标题中保持正常字体 */
+.audio-title .text-for-copy {
+    font-size: inherit;
+    font-weight: inherit;
+}
+
+/* 调整音频信息中文本样式 */
+.audio-artist .text-for-copy,
+.audio-album .text-for-copy {
+    font-size: inherit;
+    color: var(--text-normal);
+}
+
+.audio-tech-item .text-for-copy {
+    font-size: inherit;
+    color: var(--text-normal);
+}
+
+/* 复制指示器动画 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%, 5px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TFile, setIcon } from 'obsidian';
 import { MusicMetadata, formatDuration, formatBitrate } from '../metadata-utils';
+import TextForCopy from './TextForCopy';
 
 interface AudioMetadataPanelProps {
     file: TFile;
@@ -172,6 +173,28 @@ const AudioMetadataPanel: React.FC<AudioMetadataPanelProps> = ({
     const lyricsContent = lyrics ? lyrics.replace('[lrc]', '').trim() : '';
     const lyricsLines = lyricsContent ? lyricsContent.split('\n') : [];
 
+    // 添加点击复制功能
+    const handleCopyText = (text: string, e: React.MouseEvent<HTMLDivElement>) => {
+        navigator.clipboard.writeText(text).then(() => {
+            const target = e.currentTarget;
+            target.classList.add('copied');
+            
+            // 创建并添加复制指示器
+            const indicator = document.createElement('span');
+            indicator.className = 'copy-indicator';
+            indicator.textContent = '已复制';
+            target.appendChild(indicator);
+            
+            // 设置定时器移除样式和指示器
+            setTimeout(() => {
+                target.classList.remove('copied');
+                indicator.remove();
+            }, 1200);
+        }).catch(err => {
+            console.error('无法复制文本:', err);
+        });
+    };
+
     return (
         <div className="music-extended-audio-enhancer">
             {/* 元数据面板 */}
@@ -190,14 +213,38 @@ const AudioMetadataPanel: React.FC<AudioMetadataPanelProps> = ({
                     
                     {/* 信息区 */}
                     <div className="audio-info-container">
-                        <h3 className="audio-title">{metadata.title || file.basename}</h3>
+                        <h3 className="audio-title">
+                            <div 
+                                className="text-for-copy" 
+                                onClick={(e) => handleCopyText(metadata.title || file.basename, e)}
+                                title="点击复制标题"
+                            >
+                                {metadata.title || file.basename}
+                            </div>
+                        </h3>
                         
                         {metadata.artist && (
-                            <div className="audio-artist">艺术家: {metadata.artist}</div>
+                            <div className="audio-artist">
+                                艺术家: <div 
+                                    className="text-for-copy"
+                                    onClick={(e) => handleCopyText(metadata.artist!, e)}
+                                    title="点击复制艺术家"
+                                >
+                                    {metadata.artist}
+                                </div>
+                            </div>
                         )}
                         
                         {metadata.album && (
-                            <div className="audio-album">专辑: {metadata.album}</div>
+                            <div className="audio-album">
+                                专辑: <div 
+                                    className="text-for-copy"
+                                    onClick={(e) => handleCopyText(metadata.album!, e)}
+                                    title="点击复制专辑名"
+                                >
+                                    {metadata.album}
+                                </div>
+                            </div>
                         )}
                     </div>
                 </div>
@@ -206,25 +253,49 @@ const AudioMetadataPanel: React.FC<AudioMetadataPanelProps> = ({
                 <div className="audio-tech-info">
                     {metadata.duration && (
                         <div className="audio-tech-item audio-duration">
-                            时长: {formatDuration(metadata.duration)}
+                            时长: <div 
+                                className="text-for-copy"
+                                onClick={(e) => handleCopyText(formatDuration(metadata.duration!), e)}
+                                title="点击复制时长"
+                            >
+                                {formatDuration(metadata.duration)}
+                            </div>
                         </div>
                     )}
                     
                     {metadata.bitrate && (
                         <div className="audio-tech-item audio-bitrate">
-                            比特率: {formatBitrate(metadata.bitrate)}
+                            比特率: <div 
+                                className="text-for-copy"
+                                onClick={(e) => handleCopyText(formatBitrate(metadata.bitrate!), e)}
+                                title="点击复制比特率"
+                            >
+                                {formatBitrate(metadata.bitrate)}
+                            </div>
                         </div>
                     )}
                     
                     {metadata.sampleRate && (
                         <div className="audio-tech-item audio-samplerate">
-                            采样率: {Math.round(metadata.sampleRate / 1000)} kHz
+                            采样率: <div 
+                                className="text-for-copy"
+                                onClick={(e) => handleCopyText(`${Math.round(metadata.sampleRate! / 1000)} kHz`, e)}
+                                title="点击复制采样率"
+                            >
+                                {`${Math.round(metadata.sampleRate / 1000)} kHz`}
+                            </div>
                         </div>
                     )}
                     
                     {file.extension && (
                         <div className="audio-tech-item audio-format">
-                            格式: {file.extension.toUpperCase()}
+                            格式: <div 
+                                className="text-for-copy"
+                                onClick={(e) => handleCopyText(file.extension.toUpperCase(), e)}
+                                title="点击复制格式"
+                            >
+                                {file.extension.toUpperCase()}
+                            </div>
                         </div>
                     )}
                 </div>

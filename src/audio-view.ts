@@ -262,26 +262,23 @@ export class CustomAudioView extends ItemView {
         // 创建元数据信息容器
         const infoContainer = container.createDiv({ cls: 'audio-info-container' });
         
-        // 标题
-        infoContainer.createEl('h3', { 
-            cls: 'audio-title', 
-            text: this.metadata.title || this.file?.basename || '未知标题'
-        });
+        // 标题 - 添加可复制功能
+        const titleEl = infoContainer.createEl('h3', { cls: 'audio-title' });
+        const titleText = this.metadata.title || this.file?.basename || '未知标题';
+        this.createCopyableText(titleEl, titleText);
         
-        // 艺术家
+        // 艺术家 - 添加可复制功能
         if (this.metadata.artist) {
-            infoContainer.createEl('div', { 
-                cls: 'audio-artist', 
-                text: `艺术家: ${this.metadata.artist}` 
-            });
+            const artistEl = infoContainer.createEl('div', { cls: 'audio-artist' });
+            artistEl.createSpan({ text: '艺术家: ' });
+            this.createCopyableText(artistEl, this.metadata.artist);
         }
         
-        // 专辑
+        // 专辑 - 添加可复制功能
         if (this.metadata.album) {
-            infoContainer.createEl('div', { 
-                cls: 'audio-album', 
-                text: `专辑: ${this.metadata.album}` 
-            });
+            const albumEl = infoContainer.createEl('div', { cls: 'audio-album' });
+            albumEl.createSpan({ text: '专辑: ' });
+            this.createCopyableText(albumEl, this.metadata.album);
         }
         
         // 创建技术信息区域
@@ -289,28 +286,46 @@ export class CustomAudioView extends ItemView {
         
         // 添加音频格式、比特率等技术信息
         if (this.metadata.duration) {
-            techContainer.createEl('div', { 
-                cls: 'audio-duration', 
-                text: `时长: ${formatDuration(this.metadata.duration)}` 
-            });
+            const durationEl = techContainer.createEl('div', { cls: 'audio-duration' });
+            durationEl.createSpan({ text: '时长: ' });
+            this.createCopyableText(durationEl, formatDuration(this.metadata.duration));
         }
         
         if (this.metadata.bitrate) {
-            techContainer.createEl('div', { 
-                cls: 'audio-bitrate', 
-                text: `比特率: ${formatBitrate(this.metadata.bitrate)}` 
-            });
+            const bitrateEl = techContainer.createEl('div', { cls: 'audio-bitrate' });
+            bitrateEl.createSpan({ text: '比特率: ' });
+            this.createCopyableText(bitrateEl, formatBitrate(this.metadata.bitrate));
         }
         
         if (this.metadata.sampleRate) {
-            techContainer.createEl('div', { 
-                cls: 'audio-samplerate', 
-                text: `采样率: ${this.metadata.sampleRate / 1000} kHz` 
-            });
+            const sampleRateEl = techContainer.createEl('div', { cls: 'audio-samplerate' });
+            sampleRateEl.createSpan({ text: '采样率: ' });
+            this.createCopyableText(sampleRateEl, `${this.metadata.sampleRate / 1000} kHz`);
         }
         
         // 更新视图标题
         this.leaf.view.titleEl.setText(this.getDisplayText());
+    }
+    
+    private createCopyableText(container: HTMLElement, text: string): HTMLElement {
+        const copyableEl = container.createDiv({ cls: 'text-for-copy', attr: { title: '点击复制' } });
+        copyableEl.textContent = text;
+        
+        copyableEl.addEventListener('click', () => {
+            navigator.clipboard.writeText(text).then(() => {
+                copyableEl.addClass('copied');
+                
+                // 显示复制成功提示
+                const indicator = copyableEl.createSpan({ cls: 'copy-indicator', text: '已复制' });
+                
+                setTimeout(() => {
+                    copyableEl.removeClass('copied');
+                    indicator.remove();
+                }, 1200); // 从2000减少到1200毫秒
+            });
+        });
+        
+        return copyableEl;
     }
     
     async onClose(): Promise<void> {
