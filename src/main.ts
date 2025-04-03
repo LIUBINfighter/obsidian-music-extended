@@ -1,5 +1,7 @@
-import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf } from 'obsidian';
+import { App, Plugin, PluginSettingTab, Setting, WorkspaceLeaf, TFile, ViewStateResult } from 'obsidian';
 import { GALLERY_VIEW_TYPE, GalleryView } from './gallery-view';
+import { enhanceAudioView } from './audio-enhancer';
+import { parseMusicMetadata } from './metadata-utils';
 
 interface MusicExtendedSettings {
 	mySetting: string;
@@ -15,7 +17,7 @@ export default class MusicExtendedPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
-		 // 加载插件样式
+		// 加载插件样式
 		this.loadStyles();
 
 		// 注册视图
@@ -24,12 +26,32 @@ export default class MusicExtendedPlugin extends Plugin {
 			(leaf: WorkspaceLeaf) => new GalleryView(leaf)
 		);
 		
+		// 不再注册自定义音频视图，而是增强原生音频视图
+		
+		// 监听工作区布局变更，以增强新打开的音频视图
+		this.registerEvent(
+			this.app.workspace.on('layout-change', () => {
+				this.enhanceExistingAudioViews();
+			})
+		);
+		
+		// 监听文件打开事件，以捕获音频文件的打开
+		this.registerEvent(
+			this.app.workspace.on('file-open', (file) => {
+				if (file && this.isAudioFile(file)) {
+					// 延迟执行以确保视图已完全加载
+					setTimeout(() => {
+						this.enhanceExistingAudioViews();
+					}, 100);
+				}
+			})
+		);
+		
 		// 添加ribbon图标 - 默认在新标签页打开
 		const ribbonIconEl = this.addRibbonIcon(
-			'file-music', // 使用内置的音乐图标
-			'打开音乐库', // 悬停提示文本
+			'file-music',
+			'打开音乐库',
 			(evt: MouseEvent) => {
-				// 点击时在新标签页中激活音乐画廊视图
 				this.activateView('tab');
 			}
 		);
@@ -37,7 +59,7 @@ export default class MusicExtendedPlugin extends Plugin {
 		// 给ribbon图标元素添加一个CSS类，方便样式定制
 		ribbonIconEl.addClass('music-extended-ribbon-icon');
 		
-		// 添加多个命令
+		// 添加命令
 		this.addCommand({
 			id: 'open-music-gallery-new-tab',
 			name: '在新标签页打开音乐库',
@@ -54,6 +76,32 @@ export default class MusicExtendedPlugin extends Plugin {
 			},
 		});
 
+		// 添加文件菜单选项，增强音频播放
+		this.registerEvent(
+			this.app.workspace.on('file-menu', (menu, file) => {
+				if (file && this.isAudioFile(file)) {
+					menu.addItem((item) => {
+						item
+							.setTitle('增强音频播放')
+							.setIcon('headphones')
+							.onClick(async () => {
+								// 使用 Obsidian 原生方式打开音频文件
+								const leaf = this.app.workspace.getLeaf('tab');
+								await leaf.openFile(file);
+								
+								// 延迟执行以确保视图已完全加载
+								setTimeout(() => {
+									this.enhanceExistingAudioViews();
+								}, 100);
+							});
+					});
+				}
+			})
+		);
+
+		// 增强已存在的音频视图
+		this.enhanceExistingAudioViews();
+
 		// 添加设置选项卡
 		this.addSettingTab(new MusicExtendedSettingTab(this.app, this));
 	}
@@ -61,6 +109,9 @@ export default class MusicExtendedPlugin extends Plugin {
 	onunload() {
 		// 插件卸载时的清理工作
 		this.app.workspace.detachLeavesOfType(GALLERY_VIEW_TYPE);
+		
+		// 移除所有增强的音频视图元素
+		document.querySelectorAll('.music-extended-audio-enhancer').forEach(el => el.remove());
 	}
 
 	async loadSettings() {
@@ -110,6 +161,67 @@ export default class MusicExtendedPlugin extends Plugin {
 				workspace.revealLeaf(leaf);
 			}
 		}
+	}
+
+	/**
+	 * 检查文件是否为音频文件
+	 */
+	private isAudioFile(file: TFile): boolean {
+		return ['mp3', 'wav', 'ogg', 'm4a', 'flac', 'aac'].includes(file.extension);
+	}
+	
+	/**
+	 * 增强所有现有的音频视图
+	 */
+	private enhanceExistingAudioViews(): void {
+		// 查找所有当前打开的音频视图
+		const audioLeaves = this.app.workspace.getLeavesOfType('audio');
+		
+		// 为每个音频视图添加增强功能
+		audioLeaves.forEach(async (leaf) => {
+			const file = leaf.view.file;
+			if (file && this.isAudioFile(file)) {
+				// 查找视图容器
+				const audioViewContainer = leaf.view.contentEl;
+				
+				// 检查是否已经增强过
+				if (audioViewContainer.querySelector('.music-extended-audio-enhancer')) {
+					return;
+				}
+				
+				try {
+					// 获取音频元数据
+					const metadata = await parseMusicMetadata(file);
+					
+					// 对原生音频视图进行增强
+					enhanceAudioView(audioViewContainer, file, metadata, this.app);
+				} catch (error) {
+					console.error('增强音频视图失败:', error);
+				}
+			}
+		});
+	}
+
+	/**
+	 * 打开音频播放视图
+	 */
+	async openAudioView(file: TFile): Promise<void> {
+		const { workspace } = this.app;
+		
+		// 创建新标签页
+		const leaf = workspace.getLeaf('tab');
+		await leaf.setViewState({
+			type: AUDIO_VIEW_TYPE,
+			active: true,
+		});
+		
+		// 获取视图实例并设置文件
+		if (leaf.view instanceof CustomAudioView) {
+			await leaf.view.setFile(file);
+		}
+		
+		// 聚焦到视图
+		workspace.revealLeaf(leaf);
 	}
 
 	/**
