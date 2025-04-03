@@ -15,6 +15,9 @@ export default class MusicExtendedPlugin extends Plugin {
 	async onload() {
 		await this.loadSettings();
 
+		 // 加载插件样式
+		this.loadStyles();
+
 		// 注册视图
 		this.registerView(
 			GALLERY_VIEW_TYPE,
@@ -107,6 +110,47 @@ export default class MusicExtendedPlugin extends Plugin {
 				workspace.revealLeaf(leaf);
 			}
 		}
+	}
+
+	/**
+	 * 加载插件样式
+	 */
+	private loadStyles() {
+		// 添加插件自定义样式
+		this.addStyle();
+		
+		// 为body添加插件标识类，方便全局样式定制
+		document.body.classList.add('music-extended-plugin-enabled');
+	}
+	
+	/**
+	 * 添加插件样式
+	 */
+	private addStyle() {
+		// 添加样式元素
+		const styleEl = document.createElement('style');
+		styleEl.id = 'music-extended-styles';
+		
+		// 这里可以添加一些动态生成的样式
+		// 例如基于设置生成的自定义样式
+		styleEl.textContent = `
+			/* 针对应用主题的动态样式 */
+			.theme-dark .music-card {
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+			}
+			
+			.theme-light .music-card {
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			}
+			
+			/* 根据用户设置动态生成的样式 */
+			.music-extended-ribbon-icon {
+				color: var(--icon-color, var(--text-accent));
+			}
+		`;
+		
+		// 添加到文档
+		document.head.appendChild(styleEl);
 	}
 }
 
