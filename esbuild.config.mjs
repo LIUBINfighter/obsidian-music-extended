@@ -39,6 +39,7 @@ const context = await esbuild.context({
 	treeShaking: true,
 	outfile: "main.js",
 	minify: prod,
+	platform: 'node', // 告诉 Esbuild 目标平台是浏览器
 });
 
 if (prod) {
