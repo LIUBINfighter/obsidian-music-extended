@@ -313,15 +313,50 @@ export class CustomAudioView extends ItemView {
         
         copyableEl.addEventListener('click', () => {
             navigator.clipboard.writeText(text).then(() => {
+                if (!copyableEl) return;
+                
                 copyableEl.addClass('copied');
                 
                 // 显示复制成功提示
                 const indicator = copyableEl.createSpan({ cls: 'copy-indicator', text: '已复制' });
                 
+                // 安全地显示全局通知
+                try {
+                    if (this.app && this.app.notices && typeof this.app.notices.show === 'function') {
+                        const notice = this.app.notices.show(`已复制: ${text}`, 2000);
+                        // 为通知添加自定义样式类
+                        if (notice && notice.noticeEl) {
+                            notice.noticeEl.addClass('music-copy-notice');
+                        }
+                    } else {
+                        console.log('原生app.notices不可用，使用DOM通知替代');
+                    }
+                } catch (err) {
+                    console.warn('显示通知失败:', err);
+                }
+                
                 setTimeout(() => {
-                    copyableEl.removeClass('copied');
-                    indicator.remove();
-                }, 1200); // 从2000减少到1200毫秒
+                    try {
+                        if (copyableEl) {
+                            copyableEl.removeClass('copied');
+                            if (indicator && indicator.parentNode === copyableEl) {
+                                indicator.remove();
+                            }
+                        }
+                    } catch (err) {
+                        console.warn('清理复制样式失败:', err);
+                    }
+                }, 1200);
+            }).catch(err => {
+                console.error('无法复制文本:', err);
+                // 安全地显示错误通知
+                try {
+                    if (this.app && this.app.notices && typeof this.app.notices.show === 'function') {
+                        this.app.notices.show('复制失败，请重试', 3000);
+                    }
+                } catch (err) {
+                    console.warn('显示错误通知失败:', err);
+                }
             });
         });
         

@@ -37,7 +37,7 @@ export function enhanceAudioView(
         React.createElement(AudioMetadataPanel, {
             file: file,
             metadata: metadata,
-            app: app,
+            app: app, // 确保app正确传递
             plugin: plugin,
             audioEl: audioEl,
             onToggleNativeControls: (visible: boolean) => {

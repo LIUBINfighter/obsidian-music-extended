@@ -489,7 +489,7 @@
 .audio-lyrics-panel {
     padding: 12px;
     border-top: 1px solid var(--background-modifier-border);
-    background: var(--background-secondary-alt);
+    background: var (--background-secondary-alt);
     max-height: 180px;
     overflow-y: auto;
     transition: max-height 0.2s ease;
@@ -987,31 +987,69 @@
     position: relative;
     border-radius: 3px;
     padding: 0 2px;
-    transition: background-color 0.1s ease;
+    transition: all 0.2s ease;
 }
 
 .text-for-copy:hover {
     background-color: var(--background-modifier-hover);
+    text-decoration: underline;
 }
 
+/* 复制成功状态样式 */
 .text-for-copy.copied {
-    background-color: var(--background-modifier-success);
-    color: var(--text-normal);
+    background-color: var(--interactive-success);
+    color: var(--text-on-accent);
+    padding: 0 4px;
+    border-radius: 4px;
+    box-shadow: 0 0 4px var(--background-modifier-success-hover);
+    text-decoration: none !important;
+    animation: pulse-success 0.6s 1;
 }
 
+/* 成功脉冲动画 */
+@keyframes pulse-success {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* 增强复制指示器气泡 */
 .text-for-copy .copy-indicator {
     position: absolute;
-    top: -20px;
+    top: -24px;
     left: 50%;
     transform: translateX(-50%);
-    background: var(--background-modifier-success);
+    background: var(--interactive-success);
     color: var(--text-on-accent);
-    padding: 2px 6px;
-    border-radius: 3px;
+    padding: 3px 8px;
+    border-radius: 4px;
     font-size: 0.8em;
-    animation: fadeIn 0.2s, fadeOut 0.2s 1s; /* 从1.8s减少到1s */
+    font-weight: 500;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    animation: fadeIn 0.2s, fadeOut 0.2s 1s;
     white-space: nowrap;
     pointer-events: none;
+    z-index: 100;
+}
+
+/* 气泡小三角 */
+.text-for-copy .copy-indicator::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -4px;
+    border-width: 4px;
+    border-style: solid;
+    border-color: var(--interactive-success) transparent transparent transparent;
+}
+
+/* 复制成功通知样式 */
+.notice.music-copy-notice {
+    background-color: var(--interactive-success);
+    color: var(--text-on-accent);
+    font-weight: 500;
+    opacity: 0.95;
 }
 
 /* 在音频标题中保持正常字体 */

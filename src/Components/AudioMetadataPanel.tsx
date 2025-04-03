@@ -173,10 +173,15 @@ const AudioMetadataPanel: React.FC<AudioMetadataPanelProps> = ({
     const lyricsContent = lyrics ? lyrics.replace('[lrc]', '').trim() : '';
     const lyricsLines = lyricsContent ? lyricsContent.split('\n') : [];
 
-    // 添加点击复制功能
+    // 添加点击复制功能，增加防御性检查
     const handleCopyText = (text: string, e: React.MouseEvent<HTMLDivElement>) => {
+        // 确保事件目标和app对象存在
+        if (!e || !e.currentTarget) return;
+        
         navigator.clipboard.writeText(text).then(() => {
             const target = e.currentTarget;
+            if (!target) return;
+            
             target.classList.add('copied');
             
             // 创建并添加复制指示器
@@ -185,13 +190,45 @@ const AudioMetadataPanel: React.FC<AudioMetadataPanelProps> = ({
             indicator.textContent = '已复制';
             target.appendChild(indicator);
             
+            // 安全地显示全局通知
+            try {
+                if (app && app.notices && typeof app.notices.show === 'function') {
+                    const notice = app.notices.show(`已复制: ${text}`, 2000);
+                    // 为通知添加自定义样式类
+                    if (notice && notice.noticeEl) {
+                        notice.noticeEl.addClass('music-copy-notice');
+                    }
+                } else {
+                    // 备用提示方式 - 仅依赖DOM操作
+                    console.log('使用DOM通知替代，app.notices不可用');
+                }
+            } catch (err) {
+                console.warn('显示通知失败:', err);
+            }
+            
             // 设置定时器移除样式和指示器
             setTimeout(() => {
-                target.classList.remove('copied');
-                indicator.remove();
+                try {
+                    if (target) {
+                        target.classList.remove('copied');
+                        if (indicator && indicator.parentNode === target) {
+                            indicator.remove();
+                        }
+                    }
+                } catch (err) {
+                    console.warn('清理复制样式失败:', err);
+                }
             }, 1200);
         }).catch(err => {
             console.error('无法复制文本:', err);
+            // 安全地显示错误通知
+            try {
+                if (app && app.notices && typeof app.notices.show === 'function') {
+                    app.notices.show('复制失败，请重试', 3000);
+                }
+            } catch (err) {
+                console.warn('显示错误通知失败:', err);
+            }
         });
     };
 
