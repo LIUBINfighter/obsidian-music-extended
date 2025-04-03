@@ -351,7 +351,7 @@ const AudioMetadataPanel: React.FC<AudioMetadataPanelProps> = ({
                     </div>
                     
                     {/* 音量控制 */}
-                    <div className="audio-volume-controls">
+                    <div className="audio-volume-controls" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap' }}>
                         <div className="audio-volume-icon" ref={volumeIconRef}></div>
                         <input
                             type="range"
@@ -366,7 +366,7 @@ const AudioMetadataPanel: React.FC<AudioMetadataPanelProps> = ({
                     
                     {/* 播放速率控制 */}
                     <div className="audio-rate-controls">
-                        <div className="audio-rate-icon" ref={rateIconRef}></div>
+                        {/* <div className="audio-rate-icon" ref={rateIconRef}></div> */}
                         <select 
                             className="audio-rate-select"
                             value={playbackRate}

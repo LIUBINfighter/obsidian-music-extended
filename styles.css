@@ -870,6 +870,7 @@
     border-radius: 2px;
     outline: none;
     transition: height 0.2s;
+	position: relative;
 }
 
 .audio-controls-panel .audio-volume-slider:hover {
@@ -884,6 +885,9 @@
     border-radius: 50%;
     background: var(--interactive-accent);
     cursor: pointer;
+    margin-top: 3px; /* 这个负边距调整按钮的垂直位置 */
+    position: relative;
+    z-index: 2;
 }
 
 .audio-controls-panel .audio-progress-container {
